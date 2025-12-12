@@ -283,6 +283,20 @@
             "CO4": 10
           },
           "linkedAssessment": ""
+        },
+        {
+          "id": "1765551176736",
+          "name": "Internal Assessment 3",
+          "type": "Internal Assessment",
+          "subType": "3",
+          "customName": "",
+          "linkedAssessment": "",
+          "maxMarks": 30,
+          "weightage": 15,
+          "coDistribution": {
+            "CO4": 10,
+            "CO5": 20
+          }
         }
       ]
     },
@@ -1420,6 +1434,27 @@
         "CO3": 9,
         "CO4": 8
       }
+    },
+    {
+      "id": "M_C101_S104_ImprovementTest",
+      "studentId": "S104",
+      "courseId": "C101",
+      "assessment": "Improvement Test",
+      "scores": {
+        "CO1": 15,
+        "CO2": 12
+      },
+      "improvementTarget": "Internal Assessment 1"
+    },
+    {
+      "id": "M_C101_S105_ImprovementTest",
+      "studentId": "S105",
+      "courseId": "C101",
+      "assessment": "Improvement Test",
+      "scores": {
+        "CO4": 10
+      },
+      "improvementTarget": "Internal Assessment 3"
     }
   ],
   "pos": [
