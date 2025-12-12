@@ -1,3 +1,4 @@
+// src/app/routes.jsx
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import ParcLayout from "./components/ParcLayout/ParcLayout";
@@ -13,6 +14,8 @@ const MarksEntryPage = lazy(() => import("./views/marks-management/Faculty/Marks
 const IndirectCoPage = lazy(() => import("./views/marks-management/Faculty/IndirectCoAttainmentPage"));
 const CoPoAttainmentPage = lazy(() => import("./views/marks-management/Faculty/CoPoAttainmentPage"));
 const AttainmentReportPage = lazy(() => import("./views/marks-management/Faculty/AttainmentReportPage"));
+// New Import
+const StudentReportsPage = lazy(() => import("./views/marks-management/Faculty/StudentReportsPage"));
 const FacultyConfigurationPage = lazy(() => import("./views/marks-management/Faculty/FacultyConfigurationPage"));
 
 // --- ADMIN IMPORTS ---
@@ -39,9 +42,8 @@ const routes = [
   { path: "/session/signin", element: <LoginPage /> },
   
   {
-    element: <ParcLayout />, // This applies the Sidebar & Header
+    element: <ParcLayout />, 
     children: [
-      // Default Template Route
       { path: "/dashboard/default", element: <DefaultDashboard /> },
 
       // --- FACULTY ROUTES ---
@@ -50,7 +52,10 @@ const routes = [
       { path: "/faculty/marks", element: <MarksEntryPage /> },
       { path: "/faculty/indirect-co", element: <IndirectCoPage /> },
       { path: "/faculty/copo-attainment", element: <CoPoAttainmentPage /> },
-      { path: "/faculty/AttainmentReportPage", element: <AttainmentReportPage /> },
+      // Updated Path
+      { path: "/faculty/course-reports", element: <AttainmentReportPage /> },
+      // New Route
+      { path: "/faculty/student-reports", element: <StudentReportsPage /> },
       { path: "/faculty/configuration", element: <FacultyConfigurationPage /> },
 
       // --- ADMIN ROUTES ---
@@ -69,12 +74,11 @@ const routes = [
       // --- SUPER ADMIN ROUTES ---
       { path: "/superadmin/dashboard", element: <SuperAdminDashboard /> },
       { path: "/superadmin/departments", element: <DepartmentAttainmentPage /> },
-      {path: "/superadmin/DepartmentManagement", element: <DepartmentManagement />},
-      {path: "/superadmin/AdminManagement", element: <AdminManagement />}
+      { path: "/superadmin/DepartmentManagement", element: <DepartmentManagement /> },
+      { path: "/superadmin/AdminManagement", element: <AdminManagement /> }
     ]
   },
   
-  // Catch-all: Redirect unknown paths to login
   { path: "*", element: <Navigate to="/session/signin" /> }
 ];
 

@@ -1,3 +1,4 @@
+// src/app/views/marks-management/Faculty/AttainmentReportPage.jsx
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../shared/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -26,7 +27,8 @@ const AttainmentReportPage = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Attainment Reports & Analytics</h1>
+      {/* Updated Title */}
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Course Reports & Analytics</h1>
       
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

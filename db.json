@@ -203,7 +203,11 @@
           "coDistribution": {
             "CO1": 15,
             "CO2": 15
-          }
+          },
+          "type": "Internal Assessment",
+          "subType": "1",
+          "customName": "",
+          "linkedAssessment": ""
         },
         {
           "id": "2",
@@ -213,16 +217,60 @@
           "coDistribution": {
             "CO3": 15,
             "CO4": 15
-          }
+          },
+          "type": "Internal Assessment",
+          "subType": "2",
+          "customName": "",
+          "linkedAssessment": ""
         },
         {
           "id": "3",
           "name": "Assignment 1",
-          "maxMarks": 10,
+          "maxMarks": 20,
           "weightage": 10,
           "coDistribution": {
-            "CO1": 5,
-            "CO2": 5
+            "CO1": 10,
+            "CO2": 10
+          },
+          "type": "Assignment",
+          "subType": "1",
+          "customName": "",
+          "linkedAssessment": ""
+        },
+        {
+          "id": "1765471836758",
+          "name": "Semester End Exam",
+          "type": "Semester End Exam",
+          "subType": "",
+          "customName": "Semester End Exam",
+          "maxMarks": 100,
+          "weightage": 50,
+          "coDistribution": {},
+          "linkedAssessment": ""
+        },
+        {
+          "id": "1765476574165",
+          "name": "Activity - Quiz",
+          "type": "Activity",
+          "subType": "Other",
+          "customName": "Quiz",
+          "linkedAssessment": "",
+          "maxMarks": 20,
+          "weightage": 11,
+          "coDistribution": {}
+        },
+        {
+          "id": "1765518023745",
+          "name": "Improvement Test (Internal Assessment 1)",
+          "type": "Improvement Test",
+          "subType": "1",
+          "customName": "",
+          "linkedAssessment": "Internal Assessment 1",
+          "maxMarks": 30,
+          "weightage": 15,
+          "coDistribution": {
+            "CO1": 15,
+            "CO2": 15
           }
         }
       ]
@@ -534,7 +582,9 @@
       "assessment": "Internal Assessment 1",
       "scores": {
         "Part A": 12,
-        "Part B": 10
+        "Part B": 10,
+        "CO1": 15,
+        "CO2": 12
       }
     },
     {
@@ -544,7 +594,9 @@
       "assessment": "Internal Assessment 1",
       "scores": {
         "Part A": 14,
-        "Part B": 13
+        "Part B": 13,
+        "CO1": 14,
+        "CO2": 11
       }
     },
     {
@@ -554,7 +606,9 @@
       "assessment": "Internal Assessment 1",
       "scores": {
         "Part A": 10,
-        "Part B": 9
+        "Part B": 9,
+        "CO1": 13,
+        "CO2": 10
       }
     },
     {
@@ -564,7 +618,9 @@
       "assessment": "Internal Assessment 1",
       "scores": {
         "Part A": 15,
-        "Part B": 14
+        "Part B": 14,
+        "CO1": 12,
+        "CO2": 8
       }
     },
     {
@@ -574,7 +630,9 @@
       "assessment": "Internal Assessment 1",
       "scores": {
         "Part A": 8,
-        "Part B": 11
+        "Part B": 11,
+        "CO1": 10,
+        "CO2": 8
       }
     },
     {
@@ -1145,6 +1203,93 @@
       "assessment": "Semester End Exam",
       "scores": {
         "external": 81
+      }
+    },
+    {
+      "id": "M_C101_S104_InternalAssessment2",
+      "studentId": "S104",
+      "courseId": "C101",
+      "assessment": "Internal Assessment 2",
+      "scores": {}
+    },
+    {
+      "id": "M_C101_S105_InternalAssessment2",
+      "studentId": "S105",
+      "courseId": "C101",
+      "assessment": "Internal Assessment 2",
+      "scores": {}
+    },
+    {
+      "id": "M_C101_S104_Activity-Quiz",
+      "studentId": "S104",
+      "courseId": "C101",
+      "assessment": "Activity - Quiz",
+      "scores": {}
+    },
+    {
+      "id": "M_C101_S101_Activity-Quiz",
+      "studentId": "S101",
+      "courseId": "C101",
+      "assessment": "Activity - Quiz",
+      "scores": {
+        "Score": 18
+      }
+    },
+    {
+      "id": "M_C101_S102_Activity-Quiz",
+      "studentId": "S102",
+      "courseId": "C101",
+      "assessment": "Activity - Quiz",
+      "scores": {}
+    },
+    {
+      "id": "M_C101_S105_Activity-Quiz",
+      "studentId": "S105",
+      "courseId": "C101",
+      "assessment": "Activity - Quiz",
+      "scores": {}
+    },
+    {
+      "id": "M_C101_S103_Activity-Quiz",
+      "studentId": "S103",
+      "courseId": "C101",
+      "assessment": "Activity - Quiz",
+      "scores": {}
+    },
+    {
+      "id": "M_C101_S101_ImprovementTest(InternalAssessment1)",
+      "studentId": "S101",
+      "courseId": "C101",
+      "assessment": "Improvement Test (Internal Assessment 1)",
+      "scores": {
+        "CO3": 15,
+        "CO4": 8,
+        "CO1": 13,
+        "CO2": 15
+      }
+    },
+    {
+      "id": "M_C101_S103_ImprovementTest(InternalAssessment1)",
+      "studentId": "S103",
+      "courseId": "C101",
+      "assessment": "Improvement Test (Internal Assessment 1)",
+      "scores": {
+        "CO3": 15,
+        "CO4": 13,
+        "CO1": 12,
+        "CO2": 9
+      }
+    },
+    {
+      "id": "M_C101_S105_ImprovementTest(InternalAssessment1)",
+      "studentId": "S105",
+      "courseId": "C101",
+      "assessment": "Improvement Test (Internal Assessment 1)",
+      "scores": {
+        "CO3": 13,
+        "CO4": 14,
+        "CO1": 13,
+        "CO2": 14
       }
     }
   ],
