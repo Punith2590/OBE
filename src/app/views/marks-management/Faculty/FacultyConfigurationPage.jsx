@@ -4,9 +4,68 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../sh
 import { Icons } from '../shared/icons';
 import { useAuth } from '../../../contexts/AuthContext';
 import api from '../../../services/api';
+import { X, AlertCircle, CheckCircle } from 'lucide-react'; // Added Icons for Modal
 
 const TOOL_TYPES = ['Internal Assessment', 'Assignment', 'Semester End Exam', 'Activity', 'Improvement Test'];
 const SUB_TYPES = ['1', '2', '3', 'Other'];
+
+// --- CUSTOM MODAL COMPONENT ---
+const CustomModal = ({ isOpen, onClose, config }) => {
+    if (!isOpen) return null;
+
+    const { title, message, type, onConfirm, confirmText = "Confirm", confirmColor = "bg-primary-600" } = config;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-md mx-4 transform transition-all scale-100 overflow-hidden">
+                {/* Header */}
+                <div className="p-4 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        {type === 'error' && <AlertCircle className="text-red-500 w-5 h-5" />}
+                        {type === 'success' && <CheckCircle className="text-green-500 w-5 h-5" />}
+                        {title}
+                    </h3>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="p-6 text-sm text-gray-600 dark:text-gray-300">
+                    {/* Render message directly if string, or as component if JSX */}
+                    {typeof message === 'string' ? <p>{message}</p> : message}
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 border-t dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-900/50">
+                    {type === 'confirm' ? (
+                        <>
+                            <button 
+                                onClick={onClose}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={() => { onConfirm(); onClose(); }}
+                                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm transition-colors ${confirmColor} hover:opacity-90`}
+                            >
+                                {confirmText}
+                            </button>
+                        </>
+                    ) : (
+                        <button 
+                            onClick={onClose}
+                            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 shadow-sm transition-colors"
+                        >
+                            OK
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const FacultyConfigurationPage = () => {
     const { user } = useAuth();
@@ -14,7 +73,7 @@ const FacultyConfigurationPage = () => {
     // --- 1. Course Selection Logic ---
     const [courses, setCourses] = useState([]);
     const [selectedCourseId, setSelectedCourseId] = useState('');
-    const [activeTab, setActiveTab] = useState('cos'); // 'cos' or 'assessments'
+    const [activeTab, setActiveTab] = useState('cos'); 
     const [loading, setLoading] = useState(true);
 
     // --- 2. Configuration State ---
@@ -24,6 +83,21 @@ const FacultyConfigurationPage = () => {
         courseType: 'Theory',
     });
     const [assessmentTools, setAssessmentTools] = useState([]);
+
+    // --- 3. UI Modal State ---
+    const [uiModal, setUiModal] = useState({
+        isOpen: false,
+        type: 'alert', // 'alert' (info/error), 'confirm' (action)
+        title: '',
+        message: '',
+        onConfirm: null
+    });
+
+    const showModal = (type, title, message, onConfirm = null, confirmText = "Confirm", confirmColor = "bg-primary-600") => {
+        setUiModal({ isOpen: true, type, title, message, onConfirm, confirmText, confirmColor });
+    };
+
+    const closeModal = () => setUiModal(prev => ({ ...prev, isOpen: false }));
 
     // Fetch courses on mount
     useEffect(() => {
@@ -45,7 +119,7 @@ const FacultyConfigurationPage = () => {
         fetchCourses();
     }, [user]);
 
-    // Load Configuration & Parse Assessment Names when Course Changes
+    // Load Configuration
     useEffect(() => {
         if (!selectedCourseId) return;
 
@@ -54,20 +128,18 @@ const FacultyConfigurationPage = () => {
             setCoDefinitions(course.cos || []);
             setCourseSettings(course.settings || { targetThreshold: 60, courseType: 'Theory' });
             
-            // Parse existing names into structured state (Type, SubType, CustomName, LinkedAssessment)
             const parsedTools = (course.assessmentTools || []).map(tool => {
                 let type = 'Internal Assessment';
                 let subType = 'Other';
                 let customName = tool.name;
                 let linkedAssessment = '';
 
-                // Heuristic parsing based on name strings
                 if (tool.name === 'Semester End Exam') {
                     type = 'Semester End Exam';
                     subType = ''; 
                 } else if (tool.name.startsWith('Improvement Test')) {
                     type = 'Improvement Test';
-                    // Extract target name if possible
+                    // Parse linked assessment from name like "Improvement Test (Internal Assessment 1)"
                     const match = tool.name.match(/\((.*?)\)/);
                     if (match) linkedAssessment = match[1]; 
                 } else if (tool.name.startsWith('Activity')) {
@@ -110,15 +182,21 @@ const FacultyConfigurationPage = () => {
     };
 
     const removeCo = (id) => {
-        if (window.confirm(`Delete ${id}? This will remove it from all assessments.`)) {
-            setCoDefinitions(coDefinitions.filter(co => co.id !== id));
-            // Also cleanup assessments
-            setAssessmentTools(tools => tools.map(t => {
-                const newDist = { ...t.coDistribution };
-                delete newDist[id];
-                return { ...t, coDistribution: newDist };
-            }));
-        }
+        showModal(
+            'confirm',
+            'Delete Course Outcome?',
+            'This will delete the CO and remove it from all assessment distributions. This action cannot be undone.',
+            () => {
+                setCoDefinitions(prev => prev.filter(co => co.id !== id));
+                setAssessmentTools(tools => tools.map(t => {
+                    const newDist = { ...t.coDistribution };
+                    delete newDist[id];
+                    return { ...t, coDistribution: newDist };
+                }));
+            },
+            'Delete',
+            'bg-red-600'
+        );
     };
 
     const updateCo = (idx, field, value) => {
@@ -129,14 +207,22 @@ const FacultyConfigurationPage = () => {
 
     // --- Handlers: Assessment Tools ---
     const addTool = () => {
+        // Prevent duplicate default tool
+        let nextNum = 1;
+        while (assessmentTools.some(t => t.name === `Internal Assessment ${nextNum}`)) {
+            nextNum++;
+        }
+        let subType = nextNum <= 3 ? String(nextNum) : 'Other';
+        let name = nextNum <= 3 ? `Internal Assessment ${nextNum}` : `Internal Assessment Other`;
+
         const newId = Date.now().toString();
         setAssessmentTools([
             ...assessmentTools, 
             { 
                 id: newId, 
-                name: 'Internal Assessment 1', 
+                name: name, 
                 type: 'Internal Assessment',
-                subType: '1',
+                subType: subType,
                 customName: '',
                 linkedAssessment: '',
                 maxMarks: 0, 
@@ -147,9 +233,16 @@ const FacultyConfigurationPage = () => {
     };
 
     const removeTool = (id) => {
-        if (window.confirm('Are you sure you want to remove this assessment tool?')) {
-            setAssessmentTools(assessmentTools.filter(t => t.id !== id));
-        }
+        showModal(
+            'confirm',
+            'Remove Assessment Tool?',
+            'Are you sure you want to remove this assessment tool? All marks associated with it will need to be re-entered if you add it back.',
+            () => {
+                setAssessmentTools(prev => prev.filter(t => t.id !== id));
+            },
+            'Remove',
+            'bg-red-600'
+        );
     };
 
     const getImprovementTargets = (currentToolId) => {
@@ -159,8 +252,39 @@ const FacultyConfigurationPage = () => {
         );
     };
 
-    // Unified handler for updating tool properties
     const updateToolMeta = (id, field, value) => {
+        // --- DUPLICATE CHECK LOGIC ---
+        if (field === 'type' || field === 'subType') {
+            const toolToUpdate = assessmentTools.find(t => t.id === id);
+            let proposedName = '';
+            
+            // Construct proposed name
+            let type = field === 'type' ? value : toolToUpdate.type;
+            let subType = field === 'subType' ? value : toolToUpdate.subType;
+
+            if (type === 'Internal Assessment' && subType !== 'Other') {
+                proposedName = `Internal Assessment ${subType}`;
+            } else if (type === 'Assignment' && subType !== 'Other') {
+                proposedName = `Assignment ${subType}`;
+            } else if (type === 'Semester End Exam') {
+                proposedName = 'Semester End Exam';
+            } else if (type === 'Improvement Test') {
+                proposedName = 'Improvement Test';
+            }
+            
+            const exists = assessmentTools.some(t => t.id !== id && t.name === proposedName);
+            
+            if (exists) {
+                showModal(
+                    'error',
+                    'Duplicate Assessment',
+                    `An assessment with the name "${proposedName}" already exists. Please choose a different type or number.`
+                );
+                return; // Stop update
+            }
+        }
+        // -----------------------------
+
         setAssessmentTools(tools => tools.map(t => {
             if (t.id !== id) return t;
 
@@ -168,14 +292,10 @@ const FacultyConfigurationPage = () => {
 
             // --- AUTO-POPULATE CONFIG FOR IMPROVEMENT TESTS ---
             if (field === 'linkedAssessment') {
-                // Find the target tool by name
                 const targetTool = tools.find(tool => tool.name === value);
-                
                 if (targetTool) {
-                    // Copy max marks, weightage, and CO distribution
                     updatedTool.maxMarks = targetTool.maxMarks;
                     updatedTool.weightage = targetTool.weightage;
-                    // Deep copy the distribution object to avoid reference issues
                     updatedTool.coDistribution = JSON.parse(JSON.stringify(targetTool.coDistribution || {}));
                 }
             }
@@ -186,11 +306,12 @@ const FacultyConfigurationPage = () => {
                 if (updatedTool.type === 'Semester End Exam') {
                     updatedTool.name = 'Semester End Exam';
                     if (field === 'type') updatedTool.coDistribution = {}; 
+                } else if (updatedTool.type === 'Improvement Test') {
+                    updatedTool.name = 'Improvement Test'; 
+                     if (field === 'type') updatedTool.coDistribution = {};
                 } else if (updatedTool.type === 'Activity') {
                     updatedTool.name = updatedTool.customName ? `Activity - ${updatedTool.customName}` : 'Activity';
                     if (field === 'type') updatedTool.coDistribution = {}; 
-                } else if (updatedTool.type === 'Improvement Test') {
-                    updatedTool.name = updatedTool.linkedAssessment ? `Improvement Test (${updatedTool.linkedAssessment})` : 'Improvement Test';
                 } else if (updatedTool.subType === 'Other') {
                     updatedTool.name = updatedTool.customName;
                 } else {
@@ -220,22 +341,25 @@ const FacultyConfigurationPage = () => {
     const handleSave = async () => {
         if (!selectedCourseId) return;
 
-        // Validation
         const errors = [];
         assessmentTools.forEach(tool => {
-            if (tool.type !== 'Semester End Exam' && tool.type !== 'Activity') {
+            if (tool.type !== 'Semester End Exam' && tool.type !== 'Activity' && tool.type !== 'Improvement Test') {
                 const allocated = Object.values(tool.coDistribution).reduce((a, b) => a + b, 0);
                 if (allocated !== tool.maxMarks) {
-                    errors.push(`${tool.name}: Allocated ${allocated} marks, but Max Marks is ${tool.maxMarks}`);
+                    errors.push(<li><strong>{tool.name}</strong>: Allocated {allocated} marks, but Max Marks is {tool.maxMarks}</li>);
                 }
             }
-            if (!tool.name || tool.name === 'Activity' || tool.name === 'Improvement Test') {
-                errors.push("An assessment tool is incomplete. Please check Activity Names or Improvement Targets.");
+            if (!tool.name || tool.name === 'Activity') {
+                errors.push(<li>An assessment tool is missing a valid name.</li>);
             }
         });
 
         if (errors.length > 0) {
-            alert(`Configuration Error:\n\n${errors.join('\n')}\n\nPlease correct the configuration.`);
+            showModal(
+                'error',
+                'Configuration Errors',
+                <ul className="list-disc pl-5 space-y-1">{errors}</ul>
+            );
             return;
         }
 
@@ -247,13 +371,11 @@ const FacultyConfigurationPage = () => {
             };
 
             await api.patch(`/courses/${selectedCourseId}`, payload);
-            
             setCourses(prev => prev.map(c => c.id === selectedCourseId ? { ...c, ...payload } : c));
-            
-            alert(`Configuration for ${selectedCourse?.code} saved successfully!`);
+            showModal('success', 'Saved Successfully', `Configuration for ${selectedCourse?.code} has been updated.`);
         } catch (error) {
             console.error("Failed to save configuration", error);
-            alert("Error saving configuration.");
+            showModal('error', 'Save Failed', 'There was an error saving your configuration. Please try again.');
         }
     };
 
@@ -262,6 +384,10 @@ const FacultyConfigurationPage = () => {
 
     return (
         <div className="p-6 space-y-6 pb-10">
+            
+            {/* Custom Modal */}
+            <CustomModal isOpen={uiModal.isOpen} onClose={closeModal} config={uiModal} />
+
             {/* Header & Course Selector */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -294,26 +420,8 @@ const FacultyConfigurationPage = () => {
                     {/* Navigation Tabs */}
                     <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
                         <nav className="-mb-px flex space-x-8">
-                            <button
-                                onClick={() => setActiveTab('cos')}
-                                className={`${
-                                    activeTab === 'cos'
-                                        ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400'
-                                } whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm`}
-                            >
-                                1. CO & Syllabus Definition
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('assessments')}
-                                className={`${
-                                    activeTab === 'assessments'
-                                        ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400'
-                                } whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm`}
-                            >
-                                2. Assessment & Scaling Plan
-                            </button>
+                            <button onClick={() => setActiveTab('cos')} className={`${activeTab === 'cos' ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400'} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm`}>1. CO & Syllabus Definition</button>
+                            <button onClick={() => setActiveTab('assessments')} className={`${activeTab === 'assessments' ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400'} whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm`}>2. Assessment & Scaling Plan</button>
                         </nav>
                     </div>
 
@@ -348,44 +456,21 @@ const FacultyConfigurationPage = () => {
                                                 {coDefinitions.map((co, idx) => (
                                                     <tr key={idx} className="bg-white dark:bg-gray-800">
                                                         <td className="px-4 py-3 align-top">
-                                                            <input 
-                                                                value={co.id}
-                                                                onChange={(e) => updateCo(idx, 'id', e.target.value)}
-                                                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 font-bold text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                                            />
+                                                            <input value={co.id} onChange={(e) => updateCo(idx, 'id', e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 font-bold text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
                                                         </td>
                                                         <td className="px-4 py-3 align-top">
-                                                            <textarea 
-                                                                rows={2}
-                                                                value={co.description}
-                                                                onChange={(e) => updateCo(idx, 'description', e.target.value)}
-                                                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-none"
-                                                                placeholder="Enter CO statement..."
-                                                            />
+                                                            <textarea rows={2} value={co.description} onChange={(e) => updateCo(idx, 'description', e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-none" placeholder="Enter CO statement..."/>
                                                         </td>
                                                         <td className="px-4 py-3 align-top">
-                                                             <input 
-                                                                value={co.modules}
-                                                                onChange={(e) => updateCo(idx, 'modules', e.target.value)}
-                                                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                                                placeholder="e.g. Module 1, 2"
-                                                            />
+                                                             <input value={co.modules} onChange={(e) => updateCo(idx, 'modules', e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="e.g. Module 1, 2"/>
                                                         </td>
                                                         <td className="px-4 py-3 align-top">
-                                                            <select 
-                                                                value={co.kLevel}
-                                                                onChange={(e) => updateCo(idx, 'kLevel', e.target.value)}
-                                                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                                            >
+                                                            <select value={co.kLevel} onChange={(e) => updateCo(idx, 'kLevel', e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                                                 {['K1', 'K2', 'K3', 'K4', 'K5', 'K6'].map(k => <option key={k} value={k}>{k}</option>)}
                                                             </select>
                                                         </td>
                                                         <td className="px-4 py-3 align-top text-right">
-                                                            <button 
-                                                                onClick={() => removeCo(co.id)}
-                                                                className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
-                                                                title="Delete CO"
-                                                            >
+                                                            <button onClick={() => removeCo(co.id)} className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30" title="Delete CO">
                                                                 <Icons.Trash2 className="h-4 w-4" />
                                                             </button>
                                                         </td>
@@ -396,8 +481,7 @@ const FacultyConfigurationPage = () => {
                                     </div>
                                 </CardContent>
                             </Card>
-
-                             {/* Global Parameters */}
+                            
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Global Course Parameters</CardTitle>
@@ -450,10 +534,7 @@ const FacultyConfigurationPage = () => {
                                 const isActivity = tool.type === 'Activity';
                                 const isImprovement = tool.type === 'Improvement Test';
                                 
-                                // Logic for whether CO Mapping panel is visible:
-                                // Hidden for SEE and Activity
-                                const showMapping = !isSEE && !isActivity;
-
+                                const showMapping = !isSEE && !isActivity && !isImprovement;
                                 const allocated = Object.values(tool.coDistribution).reduce((a, b) => a + b, 0);
                                 const isBalanced = showMapping ? allocated === tool.maxMarks : true;
                                 
@@ -462,36 +543,43 @@ const FacultyConfigurationPage = () => {
                                         <CardContent className="p-4 sm:p-6">
                                             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                                                 
-                                                {/* Left: Tool Details (Name/Type/Marks) */}
+                                                {/* Left: Tool Details */}
                                                 <div className="md:col-span-4 space-y-4">
                                                     
-                                                    {/* Dropdown 1: Tool Type */}
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1 dark:text-gray-300">Assessment Type</label>
-                                                        <select
-                                                            value={tool.type || 'Internal Assessment'}
-                                                            onChange={(e) => updateToolMeta(tool.id, 'type', e.target.value)}
-                                                            className="block w-full rounded-md border-gray-300 shadow-sm text-sm font-medium text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-primary-500 focus:border-primary-500"
-                                                        >
-                                                            {TOOL_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
-                                                        </select>
-                                                    </div>
-
-                                                    {/* Condition 1: Standard IA/Assignment SubTypes */}
-                                                    {!isSEE && !isActivity && !isImprovement && (
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1 dark:text-gray-300">Number / Option</label>
+                                                    {/* Side-by-Side Dropdowns */}
+                                                    <div className="flex gap-2">
+                                                        <div className="flex-1">
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1 dark:text-gray-300">Type</label>
                                                             <select
-                                                                value={tool.subType || '1'}
-                                                                onChange={(e) => updateToolMeta(tool.id, 'subType', e.target.value)}
+                                                                value={tool.type || 'Internal Assessment'}
+                                                                onChange={(e) => updateToolMeta(tool.id, 'type', e.target.value)}
                                                                 className="block w-full rounded-md border-gray-300 shadow-sm text-sm font-medium text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-primary-500 focus:border-primary-500"
                                                             >
-                                                                {SUB_TYPES.map(st => <option key={st} value={st}>{st}</option>)}
+                                                                {TOOL_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
                                                             </select>
                                                         </div>
-                                                    )}
 
-                                                    {/* Condition 2: Custom Name (Other / Activity) */}
+                                                        {!isSEE && !isActivity && !isImprovement && (
+                                                            <div className="w-24">
+                                                                <label className="block text-xs font-bold text-gray-700 uppercase mb-1 dark:text-gray-300">Option</label>
+                                                                <select
+                                                                    value={tool.subType || '1'}
+                                                                    onChange={(e) => updateToolMeta(tool.id, 'subType', e.target.value)}
+                                                                    className="block w-full rounded-md border-gray-300 shadow-sm text-sm font-medium text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                                                                >
+                                                                    {SUB_TYPES.map(st => <option key={st} value={st}>{st}</option>)}
+                                                                </select>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Auto-Generated Name Display */}
+                                                    <div className="bg-gray-100 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
+                                                        <span className="text-xs text-gray-500 uppercase block mb-1">Generated Name</span>
+                                                        <span className="text-sm font-bold text-gray-900 dark:text-white">{tool.name}</span>
+                                                    </div>
+
+                                                    {/* Custom Input */}
                                                     {(tool.subType === 'Other' || isActivity) && (
                                                         <div className="animate-in fade-in slide-in-from-top-2 duration-200">
                                                             <label className="block text-xs font-bold text-gray-700 uppercase mb-1 dark:text-gray-300">
@@ -504,23 +592,6 @@ const FacultyConfigurationPage = () => {
                                                                 className="block w-full rounded-md border-gray-300 shadow-sm text-sm font-bold text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                                                                 placeholder={isActivity ? "e.g. Quiz 1" : "e.g. Lab Test 1"}
                                                             />
-                                                        </div>
-                                                    )}
-
-                                                    {/* Condition 3: Improvement Target Selection */}
-                                                    {isImprovement && (
-                                                        <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1 dark:text-gray-300">Improvement For</label>
-                                                            <select
-                                                                value={tool.linkedAssessment || ''}
-                                                                onChange={(e) => updateToolMeta(tool.id, 'linkedAssessment', e.target.value)}
-                                                                className="block w-full rounded-md border-gray-300 shadow-sm text-sm font-medium text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-primary-500 focus:border-primary-500"
-                                                            >
-                                                                <option value="">Select Assessment</option>
-                                                                {getImprovementTargets(tool.id).map(t => (
-                                                                    <option key={t.id} value={t.name}>{t.name}</option>
-                                                                ))}
-                                                            </select>
                                                         </div>
                                                     )}
                                                     
@@ -554,13 +625,17 @@ const FacultyConfigurationPage = () => {
                                                     </button>
                                                 </div>
 
-                                                {/* Right: CO Distribution (Visible unless SEE or Activity) */}
+                                                {/* Right: CO Distribution */}
                                                 <div className="md:col-span-8 border-l border-gray-200 dark:border-gray-700 pl-0 md:pl-6 pt-4 md:pt-0">
                                                     {!showMapping ? (
                                                         <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 py-8 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
                                                             <Icons.MarksEntry className="w-10 h-10 mb-2 opacity-50" />
                                                             <p className="text-sm font-medium">{tool.type}</p>
-                                                            <p className="text-xs">No CO mapping required. Only total marks will be entered.</p>
+                                                            <p className="text-xs">
+                                                                {isImprovement 
+                                                                    ? "Mapping will be defined per student in Marks Entry." 
+                                                                    : "No CO mapping required. Only total marks will be entered."}
+                                                            </p>
                                                         </div>
                                                     ) : (
                                                         <>

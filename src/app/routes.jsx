@@ -14,8 +14,9 @@ const MarksEntryPage = lazy(() => import("./views/marks-management/Faculty/Marks
 const IndirectCoPage = lazy(() => import("./views/marks-management/Faculty/IndirectCoAttainmentPage"));
 const CoPoAttainmentPage = lazy(() => import("./views/marks-management/Faculty/CoPoAttainmentPage"));
 const AttainmentReportPage = lazy(() => import("./views/marks-management/Faculty/AttainmentReportPage"));
-// New Import
 const StudentReportsPage = lazy(() => import("./views/marks-management/Faculty/StudentReportsPage"));
+// NEW IMPORT
+const StudentIndividualReportPage = lazy(() => import("./views/marks-management/Faculty/StudentIndividualReportPage"));
 const FacultyConfigurationPage = lazy(() => import("./views/marks-management/Faculty/FacultyConfigurationPage"));
 
 // --- ADMIN IMPORTS ---
@@ -52,10 +53,11 @@ const routes = [
       { path: "/faculty/marks", element: <MarksEntryPage /> },
       { path: "/faculty/indirect-co", element: <IndirectCoPage /> },
       { path: "/faculty/copo-attainment", element: <CoPoAttainmentPage /> },
-      // Updated Path
       { path: "/faculty/course-reports", element: <AttainmentReportPage /> },
-      // New Route
       { path: "/faculty/student-reports", element: <StudentReportsPage /> },
+      // NEW ROUTE:
+      { path: "/faculty/student-reports/:courseId/:studentId", element: <StudentIndividualReportPage /> },
+      
       { path: "/faculty/configuration", element: <FacultyConfigurationPage /> },
 
       // --- ADMIN ROUTES ---

@@ -3,125 +3,13 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../shared/Card';
 import { useAuth } from 'app/contexts/AuthContext';
 import api from '../../../services/api';
-import { Save, Pencil, Unlock, Check, Download, FileSpreadsheet, Users, X, TrendingUp, ArrowRightLeft } from 'lucide-react';
+import { Save, Pencil, Unlock, Check, Download, FileSpreadsheet, TrendingUp } from 'lucide-react';
 
-// --- Student Selection Modal (Unchanged) ---
-const StudentMappingModal = ({ isOpen, onClose, students, selectedStudentIds, onSave }) => {
-    const [tempSelected, setTempSelected] = useState(new Set(selectedStudentIds));
-    const [searchTerm, setSearchTerm] = useState('');
-
-    useEffect(() => {
-        setTempSelected(new Set(selectedStudentIds));
-    }, [selectedStudentIds, isOpen]);
-
-    if (!isOpen) return null;
-
-    const handleToggle = (id) => {
-        const newSet = new Set(tempSelected);
-        if (newSet.has(id)) {
-            newSet.delete(id);
-        } else {
-            newSet.add(id);
-        }
-        setTempSelected(newSet);
-    };
-
-    const handleSelectAll = () => {
-        if (tempSelected.size === students.length) {
-            setTempSelected(new Set());
-        } else {
-            setTempSelected(new Set(students.map(s => s.id)));
-        }
-    };
-
-    const filteredStudents = students.filter(s => 
-        s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        s.usn.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[80vh]">
-                <div className="p-4 border-b dark:border-gray-700 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Map Students to Improvement Test</h3>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
-                
-                <div className="p-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 space-y-3">
-                    <input 
-                        type="text" 
-                        placeholder="Search by Name or USN..." 
-                        className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
-                    <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
-                        <span>{tempSelected.size} students selected</span>
-                        <button 
-                            onClick={handleSelectAll}
-                            className="text-primary-600 hover:underline font-medium"
-                        >
-                            {tempSelected.size === students.length ? 'Deselect All' : 'Select All'}
-                        </button>
-                    </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {filteredStudents.map(student => (
-                            <div 
-                                key={student.id} 
-                                onClick={() => handleToggle(student.id)}
-                                className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
-                                    tempSelected.has(student.id) 
-                                        ? 'bg-primary-50 border-primary-200 dark:bg-primary-900/20 dark:border-primary-800' 
-                                        : 'hover:bg-gray-50 border-gray-200 dark:border-gray-700 dark:hover:bg-gray-700'
-                                }`}
-                            >
-                                <input 
-                                    type="checkbox" 
-                                    checked={tempSelected.has(student.id)}
-                                    readOnly
-                                    className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500 pointer-events-none"
-                                />
-                                <div className="ml-3">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{student.name}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{student.usn}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    {filteredStudents.length === 0 && (
-                        <p className="text-center text-gray-500 py-8">No students found.</p>
-                    )}
-                </div>
-
-                <div className="p-4 border-t dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-900/50 rounded-b-lg">
-                    <button 
-                        onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
-                    >
-                        Cancel
-                    </button>
-                    <button 
-                        onClick={() => onSave(tempSelected)}
-                        className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 shadow-sm"
-                    >
-                        Update Mapping
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// --- COMPARISON & OVERRIDE MODAL ---
-const ComparisonModal = ({ isOpen, onClose, data, onOverride }) => {
+// --- COMPARISON MODAL (Read Only - Override Removed) ---
+const ComparisonModal = ({ isOpen, onClose, data }) => {
     if (!isOpen || !data) return null;
 
-    const { student, originalMarks, improvementMarks, config } = data;
+    const { student, originalMarks, improvementMarks, targetAssessmentName, config } = data;
 
     // Helper to sum scores based on config structure
     const calcTotal = (scores) => {
@@ -138,6 +26,9 @@ const ComparisonModal = ({ isOpen, onClose, data, onOverride }) => {
                 <div className="p-5 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white">Improvement Comparison</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{student.name} ({student.usn})</p>
+                    <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded mt-2 inline-block">
+                        Improving: {targetAssessmentName}
+                    </span>
                 </div>
 
                 <div className="p-5">
@@ -181,13 +72,6 @@ const ComparisonModal = ({ isOpen, onClose, data, onOverride }) => {
                     >
                         Close
                     </button>
-                    <button 
-                        onClick={onOverride}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 shadow-sm"
-                    >
-                        <ArrowRightLeft className="w-4 h-4" />
-                        Override Marks
-                    </button>
                 </div>
             </div>
         </div>
@@ -205,15 +89,15 @@ const MarksEntryPage = () => {
   const [isTableVisible, setIsTableVisible] = useState(false);
   const [currentStudents, setCurrentStudents] = useState([]); 
   const [marks, setMarks] = useState({}); 
-  const [improvementMarks, setImprovementMarks] = useState({});
+  const [improvementMap, setImprovementMap] = useState({}); // { studentId: "Internal Assessment 1" }
+  const [improvementMarksList, setImprovementMarksList] = useState([]); // Cache for all improvement marks
   const [marksMeta, setMarksMeta] = useState({});
   const [editableRows, setEditableRows] = useState({}); 
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   
   // Modals State
-  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
-  const [comparisonData, setComparisonData] = useState(null); // For Comparison Modal
+  const [comparisonData, setComparisonData] = useState(null); 
 
   const fileInputRef = useRef(null);
 
@@ -242,6 +126,11 @@ const MarksEntryPage = () => {
       return selectedCourse?.assessmentTools || [];
   }, [selectedCourse]);
 
+  // Options for the dropdown inside the Improvement Test table
+  const internalAssessmentOptions = useMemo(() => {
+      return assessmentOptions.filter(t => t.type === 'Internal Assessment').map(t => t.name);
+  }, [assessmentOptions]);
+
   useEffect(() => {
       if (assessmentOptions.length > 0) {
           setSelectedAssessmentName(assessmentOptions[0].name);
@@ -251,13 +140,13 @@ const MarksEntryPage = () => {
       handleSelectionChange();
   }, [selectedCourseId, assessmentOptions]);
 
-  const currentAssessmentConfig = useMemo(() => {
+  const currentToolConfig = useMemo(() => {
       const tool = assessmentOptions.find(t => t.name === selectedAssessmentName);
       if (!tool) return null;
 
       const isSEE = tool.type === 'Semester End Exam' || tool.name === 'Semester End Exam';
       const isActivity = tool.type === 'Activity' || tool.name.startsWith('Activity');
-      const isImprovement = tool.type === 'Improvement Test' || tool.name.startsWith('Improvement');
+      const isImprovement = tool.type === 'Improvement Test';
 
       let config = {
           total: tool.maxMarks || 0,
@@ -271,23 +160,37 @@ const MarksEntryPage = () => {
           config.questions = [{ q: 'External', co: '', max: tool.maxMarks || 100 }];
       } else if (isActivity) {
           config.questions = [{ q: 'Score', co: '-', max: tool.maxMarks || 0 }];
-      } else {
+      } else if (!isImprovement) {
+          // Standard Internal Assessment columns
           config.questions = Object.entries(tool.coDistribution || {}).map(([coId, marks]) => ({
               q: coId,
               co: coId,
               max: parseInt(marks) || 0
           }));
       }
+      // Note: If isImprovement is true, questions are generated dynamically per row
 
       return config;
   }, [assessmentOptions, selectedAssessmentName]);
 
+  // Helper to get config for a specific internal assessment (used in Improvement table)
+  const getInternalConfig = (assessmentName) => {
+      const tool = assessmentOptions.find(t => t.name === assessmentName);
+      if (!tool) return { questions: [], total: 0 };
+      
+      const questions = Object.entries(tool.coDistribution || {}).map(([coId, marks]) => ({
+          q: coId,
+          co: coId,
+          max: parseInt(marks) || 0
+      }));
+      return { questions, total: tool.maxMarks || 0 };
+  };
 
   const handleSelectionChange = () => {
       setIsTableVisible(false);
       setCurrentStudents([]);
       setMarks({});
-      setImprovementMarks({});
+      setImprovementMap({});
       setMarksMeta({});
       setEditableRows({});
       setShowSuccess(false);
@@ -296,7 +199,7 @@ const MarksEntryPage = () => {
 
   // 2. Fetch Students & Existing Marks
   const handleLoadStudents = async () => {
-    if (!selectedCourseId || !selectedAssessmentName || !currentAssessmentConfig) return;
+    if (!selectedCourseId || !selectedAssessmentName || !currentToolConfig) return;
     setLoading(true);
     try {
         const studentsRes = await api.get(`/students?courseId=${selectedCourseId}`);
@@ -306,43 +209,41 @@ const MarksEntryPage = () => {
         const marksRes = await api.get(`/marks?courseId=${selectedCourseId}&assessment=${selectedAssessmentName}`);
         const existingMarks = marksRes.data;
 
-        // Fetch Linked Improvement Test Marks
-        const improvementTool = assessmentOptions.find(t => 
-            t.type === 'Improvement Test' && t.linkedAssessment === selectedAssessmentName
-        );
-
-        let fetchedImpMarks = {};
-        if (improvementTool) {
-            const impMarksRes = await api.get(`/marks?courseId=${selectedCourseId}&assessment=${improvementTool.name}`);
-            impMarksRes.data.forEach(r => {
-                fetchedImpMarks[r.studentId] = r.scores;
-            });
+        // --- NEW: If this is a STANDARD test, check if any IMPROVEMENT test exists for this course ---
+        if (!currentToolConfig.isImprovement) {
+            const improvementTool = assessmentOptions.find(t => t.type === 'Improvement Test');
+            if (improvementTool) {
+                // Fetch ALL marks for the improvement test to check later if a student took it for THIS assessment
+                const impMarksRes = await api.get(`/marks?courseId=${selectedCourseId}&assessment=${improvementTool.name}`);
+                setImprovementMarksList(impMarksRes.data);
+            } else {
+                setImprovementMarksList([]);
+            }
         }
-        setImprovementMarks(fetchedImpMarks);
 
         const initialMarks = {};
         const initialMeta = {};
+        const initialMap = {};
         const initialEditable = {};
 
         existingMarks.forEach(record => {
             initialMarks[record.studentId] = record.scores || {};
             initialMeta[record.studentId] = record;
-        });
-
-        students.forEach(student => {
-            if (!currentAssessmentConfig.isImprovement) {
-                 if (!initialMarks[student.id]) {
-                     initialMarks[student.id] = {};
-                     initialEditable[student.id] = true;
-                 }
-            } else {
-                 if (!initialMarks[student.id]) {
-                     // For improvement tests, do not auto-init
-                 }
+            if (record.improvementTarget) {
+                initialMap[record.studentId] = record.improvementTarget;
             }
         });
 
+        // Initialize empty rows logic
+        students.forEach(student => {
+             if (!initialMarks[student.id]) {
+                 initialMarks[student.id] = {};
+                 initialEditable[student.id] = true;
+             }
+        });
+
         setMarks(initialMarks);
+        setImprovementMap(initialMap);
         setMarksMeta(initialMeta);
         setEditableRows(initialEditable);
         setIsTableVisible(true);
@@ -355,60 +256,40 @@ const MarksEntryPage = () => {
     }
   };
 
-  // --- Handlers for Modals & Overrides ---
+  // --- Handlers ---
   
-  const handleUpdateStudentMapping = (selectedIdsSet) => {
-      const newMarks = { ...marks };
-      const newEditable = { ...editableRows };
-
-      selectedIdsSet.forEach(id => {
-          if (!newMarks[id]) {
-              newMarks[id] = {}; 
-              newEditable[id] = true; 
-          }
+  const handleImprovementTargetChange = (studentId, targetName) => {
+      setImprovementMap(prev => ({ ...prev, [studentId]: targetName }));
+      // Clear existing marks for this student if target changes or is set to empty
+      setMarks(prev => {
+          const newMarks = { ...prev };
+          delete newMarks[studentId]; // Reset marks
+          return newMarks;
       });
-
-      Object.keys(newMarks).forEach(id => {
-          if (!selectedIdsSet.has(id)) {
-              delete newMarks[id];
-              delete newEditable[id];
-          }
-      });
-
-      setMarks(newMarks);
-      setEditableRows(newEditable);
-      setIsStudentModalOpen(false);
   };
 
   const openComparisonModal = (student) => {
-      setComparisonData({
-          student,
-          originalMarks: marks[student.id] || {},
-          improvementMarks: improvementMarks[student.id] || {},
-          config: currentAssessmentConfig
-      });
+      // Find the specific improvement record for this student AND this target assessment
+      const impRecord = improvementMarksList.find(r => 
+          r.studentId === student.id && 
+          r.improvementTarget === selectedAssessmentName
+      );
+
+      if (impRecord) {
+           setComparisonData({
+               student,
+               originalMarks: marks[student.id] || {},
+               improvementMarks: impRecord.scores || {},
+               targetAssessmentName: selectedAssessmentName,
+               config: currentToolConfig
+           });
+      }
   };
 
-  const handleOverrideConfirm = () => {
-      if (!comparisonData) return;
-      const { student, improvementMarks } = comparisonData;
-      
-      const newMarks = { ...marks };
-      newMarks[student.id] = { ...improvementMarks }; // Copy values
-      
-      setMarks(newMarks);
-      setEditableRows(prev => ({ ...prev, [student.id]: true })); // Enable edit so they can see change
-      setComparisonData(null); // Close modal
-  };
-
-  const displayedStudents = useMemo(() => {
-      if (!currentAssessmentConfig?.isImprovement) return currentStudents;
-      return currentStudents.filter(s => marks.hasOwnProperty(s.id));
-  }, [currentStudents, marks, currentAssessmentConfig]);
-
-  const handleMarksChange = (studentId, questionIdentifier, value) => {
+  const handleMarksChange = (studentId, questionIdentifier, value, dynamicConfig = null) => {
+    const config = dynamicConfig || currentToolConfig;
     const newMarks = JSON.parse(JSON.stringify(marks));
-    const max = currentAssessmentConfig.questions.find(q => q.q === questionIdentifier)?.max || currentAssessmentConfig.total;
+    const max = config.questions.find(q => q.q === questionIdentifier)?.max || config.total;
     
     if (value === '') {
         delete newMarks[studentId][questionIdentifier];
@@ -423,12 +304,13 @@ const MarksEntryPage = () => {
     setMarks(newMarks);
   };
 
-  const calculateTotal = (studentId) => {
+  const calculateTotal = (studentId, dynamicConfig = null) => {
       const studentMarks = marks[studentId];
       if (!studentMarks) return 0;
       let total = 0;
-      if (currentAssessmentConfig?.questions) {
-          currentAssessmentConfig.questions.forEach(q => {
+      const config = dynamicConfig || currentToolConfig;
+      if (config?.questions) {
+          config.questions.forEach(q => {
               total += Number(studentMarks[q.q]) || 0;
           });
       }
@@ -442,9 +324,26 @@ const MarksEntryPage = () => {
   const handleSaveChanges = async () => {
     setLoading(true);
     try {
-        const promises = displayedStudents.map(async (student) => {
+        const promises = currentStudents.map(async (student) => {
             const scores = marks[student.id];
-            if (!scores) return; 
+            
+            // IMPROVEMENT LOGIC: 
+            // If it's an improvement test but "Not Writing" is selected, delete any existing record
+            if (currentToolConfig.isImprovement) {
+                const target = improvementMap[student.id];
+                const existing = marksMeta[student.id];
+
+                if (!target) {
+                    // Selected "Not Writing" -> Delete if exists
+                    if (existing) {
+                        await api.delete(`/marks/${existing.id}`);
+                    }
+                    return; // Skip saving
+                }
+            }
+            
+            // Standard check: only save if there are scores or it's a valid improvement mapping
+            if (!scores || (Object.keys(scores).length === 0 && !currentToolConfig.isImprovement)) return; 
 
             const existingRecord = marksMeta[student.id];
             
@@ -452,28 +351,18 @@ const MarksEntryPage = () => {
                 studentId: student.id,
                 courseId: selectedCourseId,
                 assessment: selectedAssessmentName,
-                scores: scores
+                scores: scores || {},
+                // Only save mapping for improvement tests
+                improvementTarget: currentToolConfig.isImprovement ? improvementMap[student.id] : undefined 
             };
 
             if (existingRecord) {
-                await api.patch(`/marks/${existingRecord.id}`, { scores });
+                await api.patch(`/marks/${existingRecord.id}`, payload);
             } else {
                 const newId = `M_${selectedCourseId}_${student.id}_${selectedAssessmentName.replace(/\s/g, '')}`;
                 await api.post('/marks', { ...payload, id: newId });
             }
         });
-
-        if (currentAssessmentConfig.isImprovement) {
-            const originalIds = Object.keys(marksMeta);
-            const currentIds = new Set(Object.keys(marks));
-            const toDelete = originalIds.filter(id => !currentIds.has(id));
-            
-            toDelete.forEach(async (id) => {
-                if (marksMeta[id]) {
-                    await api.delete(`/marks/${marksMeta[id].id}`);
-                }
-            });
-        }
 
         await Promise.all(promises);
         setShowSuccess(true);
@@ -489,15 +378,19 @@ const MarksEntryPage = () => {
 
   // --- CSV Handlers ---
   const handleDownloadTemplate = () => {
-    if (!displayedStudents.length) {
-        alert("No students found in the list. Please add students first.");
-        return;
-    }
-    const headers = ['USN', 'Name'];
-    currentAssessmentConfig.questions.forEach(q => headers.push(`${q.q} (${q.max})`));
-    const rows = displayedStudents.map(student => {
+     if (!currentStudents.length) return;
+     
+     // Template for Improvement tests is generic since columns vary
+     if (currentToolConfig.isImprovement) {
+         alert("For Improvement Tests, please enter marks manually or ensure the CSV matches the selected target columns.");
+         return;
+     }
+
+     const headers = ['USN', 'Name'];
+     currentToolConfig.questions.forEach(q => headers.push(`${q.q} (${q.max})`));
+     const rows = currentStudents.map(student => {
         const row = [student.usn, student.name];
-        currentAssessmentConfig.questions.forEach(q => {
+        currentToolConfig.questions.forEach(q => {
             row.push(marks[student.id]?.[q.q] || '');
         });
         return row.join(',');
@@ -513,13 +406,15 @@ const MarksEntryPage = () => {
   };
 
   const handleBulkUpload = (event) => {
+    // ... existing CSV logic, skipping for brevity as it remains mostly same 
+    // but should respect the current logic of marks
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
         const text = e.target.result;
         const rows = text.split('\n').map(row => row.split(','));
-        rows.shift(); 
+        rows.shift();
         const newMarks = { ...marks };
         let updatedCount = 0;
         rows.forEach(row => {
@@ -527,15 +422,20 @@ const MarksEntryPage = () => {
             const usn = row[0].trim();
             const student = currentStudents.find(s => s.usn === usn);
             if (student) {
-                if (currentAssessmentConfig.isImprovement && !newMarks[student.id]) return; 
+                if (currentToolConfig.isImprovement && !improvementMap[student.id]) return; // Skip if Not Writing
                 if (!newMarks[student.id]) newMarks[student.id] = {};
-                currentAssessmentConfig.questions.forEach((q, idx) => {
-                    const val = parseInt(row[idx + 2]); 
-                    if (!isNaN(val) && val <= q.max) {
-                        newMarks[student.id][q.q] = val;
-                        updatedCount++;
-                    }
-                });
+                
+                // Note: This works for standard tests. For improvement, CSV is tricky due to dynamic cols.
+                // Assuming standard test upload:
+                if (!currentToolConfig.isImprovement) {
+                    currentToolConfig.questions.forEach((q, idx) => {
+                        const val = parseInt(row[idx + 2]); 
+                        if (!isNaN(val) && val <= q.max) {
+                            newMarks[student.id][q.q] = val;
+                            updatedCount++;
+                        }
+                    });
+                }
             }
         });
         setMarks(newMarks);
@@ -547,6 +447,7 @@ const MarksEntryPage = () => {
 
   return (
     <div className="space-y-6 relative">
+      {/* Success Notification */}
       {showSuccess && (
         <div className="fixed top-20 right-6 z-50 animate-in slide-in-from-top-5 duration-300">
             <div className="bg-white dark:bg-gray-800 border-l-4 border-green-500 shadow-lg rounded-r-lg flex items-center p-4 min-w-[300px]">
@@ -559,20 +460,10 @@ const MarksEntryPage = () => {
         </div>
       )}
 
-      {/* Modals */}
-      <StudentMappingModal 
-        isOpen={isStudentModalOpen}
-        onClose={() => setIsStudentModalOpen(false)}
-        students={currentStudents}
-        selectedStudentIds={Object.keys(marks)}
-        onSave={handleUpdateStudentMapping}
-      />
-
       <ComparisonModal 
         isOpen={!!comparisonData}
         onClose={() => setComparisonData(null)}
         data={comparisonData}
-        onOverride={handleOverrideConfirm}
       />
 
       {/* Top Bar */}
@@ -658,7 +549,7 @@ const MarksEntryPage = () => {
       </Card>
 
       {/* Marks Table */}
-      {isTableVisible && selectedCourse && currentAssessmentConfig && (
+      {isTableVisible && selectedCourse && currentToolConfig && (
         <Card className="mt-6">
             <CardHeader>
                 <div className="flex justify-between items-center">
@@ -666,16 +557,6 @@ const MarksEntryPage = () => {
                         <CardTitle>{selectedCourse.code} - {selectedCourse.name}</CardTitle>
                         <CardDescription>Entering marks for: <span className="font-semibold text-primary-600 dark:text-primary-400">{selectedAssessmentName}</span></CardDescription>
                     </div>
-                    
-                    {currentAssessmentConfig.isImprovement && (
-                        <button 
-                            onClick={() => setIsStudentModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-primary-200 text-primary-700 rounded-lg hover:bg-primary-50 text-sm font-medium shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-primary-300 dark:hover:bg-gray-600"
-                        >
-                            <Users className="h-4 w-4" />
-                            Manage Students
-                        </button>
-                    )}
                 </div>
             </CardHeader>
             <CardContent>
@@ -683,21 +564,24 @@ const MarksEntryPage = () => {
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 border dark:border-gray-600">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <th scope="col" className="sticky left-0 bg-gray-50 dark:bg-gray-700 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r dark:border-gray-600">
-                        USN
-                      </th>
-                      <th scope="col" className="sticky left-40 bg-gray-50 dark:bg-gray-700 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r dark:border-gray-600">
-                        Student Name
-                      </th>
+                      <th scope="col" className="sticky left-0 bg-gray-50 dark:bg-gray-700 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r dark:border-gray-600">USN</th>
+                      <th scope="col" className="sticky left-40 bg-gray-50 dark:bg-gray-700 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r dark:border-gray-600">Student Name</th>
                       
-                      {currentAssessmentConfig.questions.map(q => (
-                         <th key={q.q} scope="col" className="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                           {q.q} <span className="font-normal normal-case">[{q.max}M]</span>
-                         </th>
-                      ))}
+                      {currentToolConfig.isImprovement ? (
+                          <>
+                           <th scope="col" className="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r dark:border-gray-600 w-48">Improvement For</th>
+                           <th scope="col" className="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Marks</th>
+                          </>
+                      ) : (
+                          currentToolConfig.questions.map(q => (
+                             <th key={q.q} scope="col" className="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                               {q.q} <span className="font-normal normal-case">[{q.max}M]</span>
+                             </th>
+                          ))
+                      )}
 
                       <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-l dark:border-gray-600">
-                        Total <span className="font-normal normal-case">[{currentAssessmentConfig.total}]</span>
+                        Total {currentToolConfig.isImprovement ? '' : <span className="font-normal normal-case">[{currentToolConfig.total}]</span>}
                       </th>
                       <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-l dark:border-gray-600">
                         Actions
@@ -705,78 +589,127 @@ const MarksEntryPage = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {displayedStudents.length === 0 ? (
-                        <tr>
-                            <td colSpan={5 + currentAssessmentConfig.questions.length} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                {currentAssessmentConfig.isImprovement 
-                                    ? "No students mapped to this improvement test yet. Click 'Manage Students' to add." 
-                                    : "No students found."}
-                            </td>
-                        </tr>
-                    ) : (
-                        displayedStudents.map(student => {
-                        const isEditing = editableRows[student.id];
-                        const hasImprovement = !!improvementMarks[student.id];
-                        
-                        return (
+                    {currentStudents.map(student => {
+                      const isEditing = editableRows[student.id];
+                      
+                      // --- IMPROVEMENT TEST ROW LOGIC ---
+                      if (currentToolConfig.isImprovement) {
+                          const targetAssessment = improvementMap[student.id];
+                          const isNotWriting = !targetAssessment;
+                          
+                          // If target selected, get its config for columns
+                          const dynamicConfig = targetAssessment ? getInternalConfig(targetAssessment) : null;
+                          const total = dynamicConfig ? calculateTotal(student.id, dynamicConfig) : 0;
+
+                          return (
                             <tr key={student.id} className={isEditing ? "bg-blue-50 dark:bg-blue-900/20" : ""}>
-                            <td className="sticky left-0 bg-inherit px-4 py-4 text-sm font-mono text-gray-700 dark:text-gray-300 border-r dark:border-gray-600">{student.usn}</td>
-                            <td className="sticky left-40 bg-inherit px-4 py-4 text-sm font-medium text-gray-900 dark:text-white border-r dark:border-gray-600">
-                                {student.name}
-                                {hasImprovement && (
-                                    <span className="ml-2 px-1.5 py-0.5 text-[10px] uppercase font-bold text-white bg-purple-500 rounded cursor-help" title="Improvement Test Attended">
-                                        IMP
-                                    </span>
-                                )}
-                            </td>
-                            
-                            {currentAssessmentConfig.questions.map(q => (
-                                <td key={`${student.id}-${q.q}`} className="px-3 py-2 whitespace-nowrap text-center text-sm">
-                                    <input
-                                    type="number"
-                                    min="0"
-                                    disabled={!isEditing}
-                                    max={q.max}
-                                    value={marks[student.id]?.[q.q] ?? ''}
-                                    onChange={e => handleMarksChange(student.id, q.q, e.target.value)}
-                                    className="w-16 h-10 text-center border rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                                    />
-                                </td>
-                            ))}
-
-                            <td className="px-4 py-4 text-center font-bold text-gray-800 dark:text-gray-100 border-l dark:border-gray-600">
-                                {calculateTotal(student.id)}
-                            </td>
-
-                            {/* ACTIONS COLUMN WITH COMPARISON BUTTON */}
-                            <td className="px-4 py-4 text-center border-l dark:border-gray-600">
-                                <div className="flex justify-center gap-2">
-                                    {hasImprovement && (
-                                        <button
-                                            onClick={() => openComparisonModal(student)}
-                                            className="p-2 text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30 rounded-md transition-colors"
-                                            title="Compare & Override Marks"
-                                        >
-                                            <TrendingUp className="w-4 h-4" />
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={() => toggleEditRow(student.id)}
-                                        className={`p-2 rounded-md transition-colors ${
-                                            isEditing 
-                                            ? "text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30" 
-                                            : "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-                                        }`}
-                                        title={isEditing ? "Finish Editing" : "Edit Marks"}
+                                <td className="sticky left-0 bg-inherit px-4 py-4 text-sm font-mono text-gray-700 dark:text-gray-300 border-r dark:border-gray-600">{student.usn}</td>
+                                <td className="sticky left-40 bg-inherit px-4 py-4 text-sm font-medium text-gray-900 dark:text-white border-r dark:border-gray-600">{student.name}</td>
+                                <td className="px-3 py-2 whitespace-nowrap text-center text-sm border-r dark:border-gray-600">
+                                    <select
+                                        disabled={!isEditing}
+                                        value={targetAssessment || ''}
+                                        onChange={(e) => handleImprovementTargetChange(student.id, e.target.value)}
+                                        className="w-full text-xs p-1.5 border rounded-md disabled:bg-gray-100 disabled:text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-primary-500 focus:border-primary-500"
                                     >
+                                        <option value="">Not Writing</option>
+                                        {internalAssessmentOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap text-center text-sm">
+                                    {isNotWriting ? (
+                                        <span className="text-gray-400 italic text-xs">-- Not Writing --</span>
+                                    ) : dynamicConfig ? (
+                                        <div className="flex gap-2 justify-center">
+                                            {dynamicConfig.questions.map(q => (
+                                                <div key={q.q} className="flex flex-col items-center">
+                                                    <span className="text-[9px] text-gray-500 uppercase font-medium">{q.co}</span>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        disabled={!isEditing}
+                                                        max={q.max}
+                                                        value={marks[student.id]?.[q.q] ?? ''}
+                                                        onChange={e => handleMarksChange(student.id, q.q, e.target.value, dynamicConfig)}
+                                                        className="w-12 h-8 text-center border rounded-md disabled:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-primary-500 transition-colors text-sm"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </td>
+                                <td className="px-4 py-4 text-center font-bold text-gray-800 dark:text-gray-100 border-l dark:border-gray-600">
+                                    {isNotWriting ? '-' : total}
+                                </td>
+                                <td className="px-4 py-4 text-center border-l dark:border-gray-600">
+                                    <button onClick={() => toggleEditRow(student.id)} className={`p-2 rounded-md transition-colors ${isEditing ? "text-green-600 hover:bg-green-50" : "text-gray-500 hover:bg-gray-100"}`}>
                                         {isEditing ? <Unlock className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
                                     </button>
-                                </div>
-                            </td>
+                                </td>
                             </tr>
-                        );
-                        })
-                    )}
+                          );
+                      }
+
+                      // --- STANDARD ASSESSMENT ROW LOGIC ---
+                      // Check for improvement
+                      const impMarkRecord = improvementMarksList.find(r => 
+                          r.studentId === student.id && 
+                          r.improvementTarget === selectedAssessmentName
+                      );
+                      const hasImprovement = !!impMarkRecord;
+                      
+                      return (
+                        <tr key={student.id} className={isEditing ? "bg-blue-50 dark:bg-blue-900/20" : ""}>
+                          <td className="sticky left-0 bg-inherit px-4 py-4 text-sm font-mono text-gray-700 dark:text-gray-300 border-r dark:border-gray-600">{student.usn}</td>
+                          <td className="sticky left-40 bg-inherit px-4 py-4 text-sm font-medium text-gray-900 dark:text-white border-r dark:border-gray-600">{student.name}</td>
+                          
+                          {currentToolConfig.questions.map(q => (
+                              <td key={`${student.id}-${q.q}`} className="px-3 py-2 whitespace-nowrap text-center text-sm">
+                                  <input
+                                  type="number"
+                                  min="0"
+                                  disabled={!isEditing}
+                                  max={q.max}
+                                  value={marks[student.id]?.[q.q] ?? ''}
+                                  onChange={e => handleMarksChange(student.id, q.q, e.target.value)}
+                                  className="w-16 h-10 text-center border rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                                  />
+                              </td>
+                          ))}
+
+                          <td className="px-4 py-4 text-center font-bold text-gray-800 dark:text-gray-100 border-l dark:border-gray-600">
+                            {calculateTotal(student.id)}
+                          </td>
+
+                          {/* ACTIONS */}
+                          <td className="px-4 py-4 text-center border-l dark:border-gray-600">
+                            <div className="flex justify-center gap-2">
+                                {/* Only show compare button if Improvement Exists for this specific assessment */}
+                                {hasImprovement && (
+                                    <button
+                                        onClick={() => openComparisonModal(student)}
+                                        className="p-2 text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30 rounded-mdBS transition-colors"
+                                        title="View Improvement Comparison"
+                                    >
+                                        <TrendingUp className="w-4 h-4" />
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => toggleEditRow(student.id)}
+                                    className={`p-2 rounded-md transition-colors ${
+                                        isEditing 
+                                        ? "text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30" 
+                                        : "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                                    }`}
+                                    title={isEditing ? "Finish Editing" : "Edit Marks"}
+                                >
+                                    {isEditing ? <Unlock className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+                                </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

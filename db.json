@@ -256,22 +256,33 @@
           "customName": "Quiz",
           "linkedAssessment": "",
           "maxMarks": 20,
-          "weightage": 11,
+          "weightage": 13,
           "coDistribution": {}
         },
         {
-          "id": "1765518023745",
-          "name": "Improvement Test (Internal Assessment 1)",
+          "id": "1765541213225",
+          "name": "Improvement Test",
           "type": "Improvement Test",
-          "subType": "1",
-          "customName": "",
-          "linkedAssessment": "Internal Assessment 1",
+          "subType": "Other",
+          "customName": "Improvement Test",
           "maxMarks": 30,
           "weightage": 15,
+          "coDistribution": {},
+          "linkedAssessment": ""
+        },
+        {
+          "id": "1765543286874",
+          "name": "Assignment 2",
+          "type": "Assignment",
+          "subType": "2",
+          "customName": "",
+          "maxMarks": 20,
+          "weightage": 10,
           "coDistribution": {
-            "CO1": 15,
-            "CO2": 15
-          }
+            "CO3": 10,
+            "CO4": 10
+          },
+          "linkedAssessment": ""
         }
       ]
     },
@@ -642,7 +653,9 @@
       "assessment": "Internal Assessment 2",
       "scores": {
         "Part A": 13,
-        "Part B": 11
+        "Part B": 11,
+        "CO3": 13,
+        "CO4": 12
       }
     },
     {
@@ -652,7 +665,9 @@
       "assessment": "Internal Assessment 2",
       "scores": {
         "Part A": 15,
-        "Part B": 14
+        "Part B": 14,
+        "CO3": 14,
+        "CO4": 11
       }
     },
     {
@@ -662,7 +677,9 @@
       "assessment": "Internal Assessment 2",
       "scores": {
         "Part A": 11,
-        "Part B": 10
+        "Part B": 10,
+        "CO3": 14,
+        "CO4": 15
       }
     },
     {
@@ -672,7 +689,9 @@
       "assessment": "Assignment 1",
       "scores": {
         "Part A": 9,
-        "Part B": 8
+        "Part B": 8,
+        "CO1": 9,
+        "CO2": 9
       }
     },
     {
@@ -682,7 +701,9 @@
       "assessment": "Assignment 1",
       "scores": {
         "Part A": 10,
-        "Part B": 9
+        "Part B": 9,
+        "CO1": 10,
+        "CO2": 10
       }
     },
     {
@@ -1137,7 +1158,9 @@
       "assessment": "Assignment 1",
       "scores": {
         "Part A": 8,
-        "Part B": 10
+        "Part B": 10,
+        "CO1": 10,
+        "CO2": 10
       }
     },
     {
@@ -1147,7 +1170,9 @@
       "assessment": "Assignment 1",
       "scores": {
         "Part A": 9,
-        "Part B": 8
+        "Part B": 8,
+        "CO1": 8,
+        "CO2": 9
       }
     },
     {
@@ -1157,7 +1182,9 @@
       "assessment": "Assignment 1",
       "scores": {
         "Part A": 10,
-        "Part B": 9
+        "Part B": 9,
+        "CO1": 10,
+        "CO2": 9
       }
     },
     {
@@ -1166,7 +1193,8 @@
       "courseId": "C101",
       "assessment": "Semester End Exam",
       "scores": {
-        "external": 74
+        "external": 74,
+        "External": 81
       }
     },
     {
@@ -1175,7 +1203,8 @@
       "courseId": "C101",
       "assessment": "Semester End Exam",
       "scores": {
-        "external": 85
+        "external": 85,
+        "External": 93
       }
     },
     {
@@ -1184,7 +1213,8 @@
       "courseId": "C101",
       "assessment": "Semester End Exam",
       "scores": {
-        "external": 88
+        "external": 88,
+        "External": 83
       }
     },
     {
@@ -1193,7 +1223,8 @@
       "courseId": "C101",
       "assessment": "Semester End Exam",
       "scores": {
-        "external": 69
+        "external": 69,
+        "External": 78
       }
     },
     {
@@ -1202,7 +1233,8 @@
       "courseId": "C101",
       "assessment": "Semester End Exam",
       "scores": {
-        "external": 81
+        "external": 81,
+        "External": 83
       }
     },
     {
@@ -1210,21 +1242,29 @@
       "studentId": "S104",
       "courseId": "C101",
       "assessment": "Internal Assessment 2",
-      "scores": {}
+      "scores": {
+        "CO3": 15,
+        "CO4": 15
+      }
     },
     {
       "id": "M_C101_S105_InternalAssessment2",
       "studentId": "S105",
       "courseId": "C101",
       "assessment": "Internal Assessment 2",
-      "scores": {}
+      "scores": {
+        "CO3": 13,
+        "CO4": 10
+      }
     },
     {
       "id": "M_C101_S104_Activity-Quiz",
       "studentId": "S104",
       "courseId": "C101",
       "assessment": "Activity - Quiz",
-      "scores": {}
+      "scores": {
+        "Score": 20
+      }
     },
     {
       "id": "M_C101_S101_Activity-Quiz",
@@ -1240,21 +1280,27 @@
       "studentId": "S102",
       "courseId": "C101",
       "assessment": "Activity - Quiz",
-      "scores": {}
+      "scores": {
+        "Score": 20
+      }
     },
     {
       "id": "M_C101_S105_Activity-Quiz",
       "studentId": "S105",
       "courseId": "C101",
       "assessment": "Activity - Quiz",
-      "scores": {}
+      "scores": {
+        "Score": 18
+      }
     },
     {
       "id": "M_C101_S103_Activity-Quiz",
       "studentId": "S103",
       "courseId": "C101",
       "assessment": "Activity - Quiz",
-      "scores": {}
+      "scores": {
+        "Score": 19
+      }
     },
     {
       "id": "M_C101_S101_ImprovementTest(InternalAssessment1)",
@@ -1290,6 +1336,89 @@
         "CO4": 14,
         "CO1": 13,
         "CO2": 14
+      }
+    },
+    {
+      "id": "M_C101_S101_ImprovementTest",
+      "studentId": "S101",
+      "courseId": "C101",
+      "assessment": "Improvement Test",
+      "scores": {
+        "CO1": 14,
+        "CO2": 15
+      },
+      "improvementTarget": "Internal Assessment 1"
+    },
+    {
+      "id": "M_C101_S102_ImprovementTest",
+      "studentId": "S102",
+      "courseId": "C101",
+      "assessment": "Improvement Test",
+      "scores": {
+        "CO3": 15,
+        "CO4": 12
+      },
+      "improvementTarget": "Internal Assessment 2"
+    },
+    {
+      "id": "M_C101_S103_ImprovementTest",
+      "studentId": "S103",
+      "courseId": "C101",
+      "assessment": "Improvement Test",
+      "scores": {
+        "CO3": 15,
+        "CO4": 14
+      },
+      "improvementTarget": "Internal Assessment 2"
+    },
+    {
+      "id": "M_C101_S101_Assignment2",
+      "studentId": "S101",
+      "courseId": "C101",
+      "assessment": "Assignment 2",
+      "scores": {
+        "CO3": 9,
+        "CO4": 10
+      }
+    },
+    {
+      "id": "M_C101_S102_Assignment2",
+      "studentId": "S102",
+      "courseId": "C101",
+      "assessment": "Assignment 2",
+      "scores": {
+        "CO3": 10,
+        "CO4": 10
+      }
+    },
+    {
+      "id": "M_C101_S103_Assignment2",
+      "studentId": "S103",
+      "courseId": "C101",
+      "assessment": "Assignment 2",
+      "scores": {
+        "CO3": 10,
+        "CO4": 8
+      }
+    },
+    {
+      "id": "M_C101_S104_Assignment2",
+      "studentId": "S104",
+      "courseId": "C101",
+      "assessment": "Assignment 2",
+      "scores": {
+        "CO3": 10,
+        "CO4": 10
+      }
+    },
+    {
+      "id": "M_C101_S105_Assignment2",
+      "studentId": "S105",
+      "courseId": "C101",
+      "assessment": "Assignment 2",
+      "scores": {
+        "CO3": 9,
+        "CO4": 8
       }
     }
   ],
